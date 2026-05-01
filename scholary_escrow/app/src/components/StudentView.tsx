@@ -1,8 +1,18 @@
 import { useState } from "react";
+import type { Escrow } from "./Dashboard";
 
-export default function StudentView() {
+interface Props {
+  escrows: Escrow[];
+  walletAddress: string;
+}
+
+export default function StudentView({ escrows, walletAddress }: Props) {
   const [gradeStatus, setGradeStatus] = useState<"idle" | "loading" | "submitted">("idle");
   const [message, setMessage] = useState("");
+
+  const myEscrow = escrows.find(e => 
+    e.studentWallet.toLowerCase() === walletAddress.toLowerCase()
+  );
 
   const handleSubmitGrades = async () => {
     setGradeStatus("loading");
@@ -17,40 +27,45 @@ export default function StudentView() {
       <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
         <h2 className="text-xl font-bold mb-1">My Scholarship</h2>
         <p className="text-gray-400 text-sm mb-6">Your active escrow and disbursement status</p>
-        <div className="bg-gray-800 rounded-xl p-5 border border-purple-800 mb-4">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs bg-purple-900 text-purple-300 px-2 py-1 rounded-full">● Escrow Active</span>
-            <span className="text-xs text-gray-400">2025/2026 Session</span>
+
+        {myEscrow ? (
+          <div className="bg-gray-800 rounded-xl p-5 border border-purple-800 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-xs bg-purple-900 text-purple-300 px-2 py-1 rounded-full">● Escrow Active</span>
+              <span className="text-xs text-gray-400">2025/2026 Session</span>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-400 text-sm">Total Scholarship</span>
+                <span className="text-white font-bold">{myEscrow.totalAmount} SOL</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400 text-sm">Released So Far</span>
+                <span className="text-green-400 font-bold">{myEscrow.disbursed} SOL</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400 text-sm">Next Milestone</span>
+                <span className="text-purple-400 font-bold">{myEscrow.milestoneAmount} SOL</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400 text-sm">Condition</span>
+                <span className="text-white text-sm">GPA ≥ 3.0</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="bg-green-500 h-2 rounded-full" style={{ width: "0%" }}></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">0% disbursed</p>
+            </div>
           </div>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-400 text-sm">Total Scholarship</span>
-              <span className="text-white font-bold">2.5 SOL</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400 text-sm">Released So Far</span>
-              <span className="text-green-400 font-bold">0.5 SOL</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400 text-sm">Next Milestone</span>
-              <span className="text-purple-400 font-bold">0.5 SOL</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400 text-sm">Condition</span>
-              <span className="text-white text-sm">GPA ≥ 3.0</span>
-            </div>
+        ) : (
+          <div className="text-center text-gray-500 text-sm py-8 border border-dashed border-gray-700 rounded-xl">
+            No scholarship found for your wallet. Ask your sponsor to create one!
           </div>
-          <div className="mt-4">
-            <div className="flex justify-between text-xs text-gray-400 mb-1">
-              <span>Progress</span>
-              <span>Milestone 1 of 5</span>
-            </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: "20%" }}></div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
+
       <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
         <h2 className="text-xl font-bold mb-1">Submit Academic Records</h2>
         <p className="text-gray-400 text-sm mb-6">Submit grades for oracle verification to unlock next milestone</p>

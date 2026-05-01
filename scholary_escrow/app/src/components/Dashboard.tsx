@@ -4,9 +4,18 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import SponsorView from "./SponsorView";
 import StudentView from "./StudentView";
 
+export interface Escrow {
+  studentWallet: string;
+  oracleWallet: string;
+  totalAmount: string;
+  milestoneAmount: string;
+  disbursed: number;
+}
+
 export default function Dashboard() {
   const { connected, publicKey } = useWallet();
   const [activeTab, setActiveTab] = useState<"sponsor" | "student">("sponsor");
+  const [escrows, setEscrows] = useState<Escrow[]>([]);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -70,7 +79,10 @@ export default function Dashboard() {
                 🎓 Student View
               </button>
             </div>
-            {activeTab === "sponsor" ? <SponsorView /> : <StudentView />}
+            {activeTab === "sponsor" 
+              ? <SponsorView escrows={escrows} setEscrows={setEscrows} />
+              : <StudentView escrows={escrows} walletAddress={publicKey?.toBase58() || ""} />
+            }
           </div>
         )}
       </main>

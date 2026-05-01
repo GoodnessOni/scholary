@@ -1,13 +1,12 @@
 import { useState } from "react";
+import type { Escrow } from "./Dashboard";
 
-interface Escrow {
-  studentWallet: string;
-  totalAmount: string;
-  milestoneAmount: string;
-  disbursed: number;
+interface Props {
+  escrows: Escrow[];
+  setEscrows: React.Dispatch<React.SetStateAction<Escrow[]>>;
 }
 
-export default function SponsorView() {
+export default function SponsorView({ escrows, setEscrows }: Props) {
   const [form, setForm] = useState({
     studentWallet: "",
     oracleWallet: "",
@@ -16,7 +15,6 @@ export default function SponsorView() {
   });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [escrows, setEscrows] = useState<Escrow[]>([]);
 
   const handleSubmit = async () => {
     if (!form.studentWallet || !form.totalAmount || !form.milestoneAmount) {
@@ -33,6 +31,7 @@ export default function SponsorView() {
     // Add to active escrows
     setEscrows(prev => [...prev, {
       studentWallet: form.studentWallet,
+      oracleWallet: form.oracleWallet,
       totalAmount: form.totalAmount,
       milestoneAmount: form.milestoneAmount,
       disbursed: 0,

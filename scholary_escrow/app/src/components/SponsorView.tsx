@@ -1,5 +1,12 @@
 import { useState } from "react";
 
+interface Escrow {
+  studentWallet: string;
+  totalAmount: string;
+  milestoneAmount: string;
+  disbursed: number;
+}
+
 export default function SponsorView() {
   const [form, setForm] = useState({
     studentWallet: "",
@@ -9,9 +16,10 @@ export default function SponsorView() {
   });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [escrows, setEscrows] = useState<Escrow[]>([]);
 
   const handleSubmit = async () => {
-    if (!form.studentWallet || !form.totalAmount) {
+    if (!form.studentWallet || !form.totalAmount || !form.milestoneAmount) {
       setStatus("error");
       setMessage("Please fill in all fields.");
       return;
@@ -21,6 +29,17 @@ export default function SponsorView() {
     await new Promise(r => setTimeout(r, 2000));
     setStatus("success");
     setMessage(`✅ Escrow initialized! ${form.totalAmount} SOL locked for student.`);
+    
+    // Add to active escrows
+    setEscrows(prev => [...prev, {
+      studentWallet: form.studentWallet,
+      totalAmount: form.totalAmount,
+      milestoneAmount: form.milestoneAmount,
+      disbursed: 0,
+    }]);
+
+    // Reset form
+    setForm({ studentWallet: "", oracleWallet: "", totalAmount: "", milestoneAmount: "" });
   };
 
   return (
@@ -87,20 +106,43 @@ export default function SponsorView() {
           )}
         </div>
       </div>
+
       <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
         <h2 className="text-xl font-bold mb-1">Active Scholarships</h2>
         <p className="text-gray-400 text-sm mb-6">Funds currently locked in escrow vaults</p>
-        <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded-full">● Active</span>
-            <span className="text-xs text-gray-400">Milestone 1 of 5</span>
-          </div>
-          <p className="text-sm text-gray-300 mb-1">Student: <span className="text-white font-mono">F2iF...5BYR</span></p>
-          <p className="text-sm text-gray-300 mb-3">Locked: <span className="text-purple-400 font-bold">2.5 SOL</span></p>
-          <div className="w-full bg-gray-700 rounded-full h-2">
-            <div className="bg-purple-600 h-2 rounded-full" style={{ width: "20%" }}></div>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">20% disbursed</p>
+        <div className="space-y-4">
+          {escrows.length === 0 ? (
+            <div className="text-center text-gray-500 text-sm py-8 border border-dashed border-gray-700 rounded-xl">
+              No active escrows yet. Create one to get started!
+            </div>
+          ) : (
+            escrows.map((escrow, i) => {
+              const total = parseFloat(escrow.totalAmount);
+              const milestone = parseFloat(escrow.milestoneAmount);
+              const milestones = Math.round(total / milestone);
+              const pct = Math.round((escrow.disbursed / total) * 100);
+              return (
+                <div key={i} className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs bg-green-900 text-green-300 px-2 py-1 rounded-full">● Active</span>
+                    <span className="text-xs text-gray-400">Milestone 1 of {milestones}</span>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-1">
+                    Student: <span className="text-white font-mono">
+                      {escrow.studentWallet.slice(0, 6)}...{escrow.studentWallet.slice(-4)}
+                    </span>
+                  </p>
+                  <p className="text-sm text-gray-300 mb-3">
+                    Locked: <span className="text-purple-400 font-bold">{escrow.totalAmount} SOL</span>
+                  </p>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div className="bg-purple-600 h-2 rounded-full" style={{ width: `${pct}%` }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{pct}% disbursed</p>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
